@@ -15,7 +15,6 @@
         overflow: hidden;
     }
 
-    /* Left stats panel */
     #leftPanel {
         flex: 1;
         background: #444;
@@ -28,7 +27,6 @@
         box-sizing: border-box;
     }
 
-    /* Main game area (middle) */
     #game {
         flex: 2;
         display: flex;
@@ -39,7 +37,6 @@
         background: transparent;
     }
 
-    /* Right upgrades panel */
     #sidebar {
         flex: 1;
         background: #444;
@@ -49,10 +46,9 @@
         box-sizing: border-box;
     }
 
-    /* Updated counter styling: slightly bigger font */
     #counter, #cps {
-        font-size: 1.2em;      /* slightly bigger than upgrade descriptions */
-        color: #ddd;            /* same color as upgrade descriptions */
+        font-size: 1.2em;
+        color: #ddd;
         margin-bottom: 20px;
         text-align: center;
         font-family: Arial, sans-serif;
@@ -135,7 +131,7 @@ const defaultUpgrades = [
     {name: "Legend 67", type: "auto", baseCost: 10000, perSecond: 100, bought: 0, unlocked: false, description: "Generates 100 67s per second automatically."}
 ];
 
-// Load saved upgrades from localStorage, merge with defaults to ensure descriptions exist
+// Load saved upgrades from localStorage
 let savedUpgrades = JSON.parse(localStorage.getItem('upgrades')) || [];
 let upgrades = defaultUpgrades.map((defaultU, i) => {
     const savedU = savedUpgrades[i] || {};
@@ -150,8 +146,8 @@ const counterEl = document.getElementById("counter");
 const cpsEl = document.getElementById("cps");
 const clicker = document.getElementById("clicker");
 const upgradesContainer = document.getElementById("upgradesContainer");
-const gameArea = document.getElementById("game");
 
+// Render upgrade buttons
 function renderUpgrades() {
     upgradesContainer.innerHTML = '';
     upgrades.forEach((u, i) => {
@@ -168,6 +164,16 @@ function renderUpgrades() {
     });
 }
 
+// Update buttons without re-rendering everything
+function updateUpgradeButtons() {
+    const buttons = upgradesContainer.getElementsByClassName("upgrade");
+    upgrades.forEach((u, i) => {
+        const cost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
+        if (buttons[i]) buttons[i].disabled = count < cost;
+    });
+}
+
+// Buy upgrade
 function buyUpgrade(i) {
     const u = upgrades[i];
     const cost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
@@ -194,6 +200,7 @@ function showFloating67(amount) {
     setTimeout(() => { span.remove(); }, 1000);
 }
 
+// Click 67
 clicker.addEventListener("click", () => {
     count += perClick;
     showFloating67(perClick);
@@ -201,11 +208,14 @@ clicker.addEventListener("click", () => {
     saveGame();
 });
 
+// Update display and upgrade button states
 function updateDisplay() {
     counterEl.textContent = `67’s: ${Math.floor(count)}`;
     cpsEl.textContent = `67’s per second: ${total67sPerSecond}`;
+    updateUpgradeButtons(); // <-- ensures buttons respond immediately
 }
 
+// Auto increment 67s
 setInterval(() => {
     count += total67sPerSecond / 10;
     updateDisplay();
@@ -219,6 +229,7 @@ function saveGame() {
     localStorage.setItem('upgrades', JSON.stringify(upgrades));
 }
 
+// Initial render
 renderUpgrades();
 updateDisplay();
 </script>
