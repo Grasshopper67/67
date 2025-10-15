@@ -107,9 +107,9 @@
 </head>
 <body>
     <div id="leftPanel">
-        <div id="counter">67’s: 0</div>
+        <div id="counter">67s: 0</div>
         <img src="https://i.postimg.cc/PxsJHCyY/67-img.jpg" alt="67 Kid" id="clicker">
-        <div id="cps">67’s per second: 0</div>
+        <div id="cps">67s per second: 0</div>
     </div>
 
     <div id="game"></div>
@@ -213,8 +213,8 @@ clicker.addEventListener("click", () => {
 
 // ===== DISPLAY AND SAVE =====
 function updateDisplay() {
-    counterEl.textContent = `67’s: ${Math.floor(count)}`;
-    cpsEl.textContent = `67’s per second: ${total67sPerSecond}`;
+    counterEl.textContent = `67s: ${Math.floor(count)}`;
+    cpsEl.textContent = `67s per second: ${total67sPerSecond}`;
     renderUpgrades();
     updateUpgradeButtons();
 }
