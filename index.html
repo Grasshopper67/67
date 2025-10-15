@@ -47,8 +47,8 @@
     }
 
     #counter, #cps {
-        font-size: 1.2em;
-        color: #ddd;
+        font-size: 1.4em; /* slightly bigger font */
+        color: #ddd;      /* same color as upgrade descriptions */
         margin-bottom: 20px;
         text-align: center;
         font-family: Arial, sans-serif;
@@ -147,7 +147,7 @@ const cpsEl = document.getElementById("cps");
 const clicker = document.getElementById("clicker");
 const upgradesContainer = document.getElementById("upgradesContainer");
 
-// Render upgrade buttons
+// Render upgrades
 function renderUpgrades() {
     upgradesContainer.innerHTML = '';
     upgrades.forEach((u, i) => {
@@ -164,11 +164,14 @@ function renderUpgrades() {
     });
 }
 
-// Update buttons without re-rendering everything
+// Update buttons and unlock upgrades dynamically
 function updateUpgradeButtons() {
     const buttons = upgradesContainer.getElementsByClassName("upgrade");
     upgrades.forEach((u, i) => {
+        if (!u.unlocked && count >= u.baseCost / 2) u.unlocked = true; // instant unlock
+
         const cost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
+
         if (buttons[i]) buttons[i].disabled = count < cost;
     });
 }
@@ -208,11 +211,12 @@ clicker.addEventListener("click", () => {
     saveGame();
 });
 
-// Update display and upgrade button states
+// Update display and button states
 function updateDisplay() {
     counterEl.textContent = `67’s: ${Math.floor(count)}`;
     cpsEl.textContent = `67’s per second: ${total67sPerSecond}`;
-    updateUpgradeButtons(); // <-- ensures buttons respond immediately
+    renderUpgrades();      // ensure new upgrades appear instantly
+    updateUpgradeButtons(); // buttons enable/disable in real-time
 }
 
 // Auto increment 67s
