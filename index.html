@@ -109,9 +109,46 @@ function getUpgradeText(upg) {
     else return `${upg.name} (+${upg.perSecond}/sec) - ${upg.baseCost} 67’s`;
 }
 
-upgradeList.forEach(upg => {
-    if(upg.unlocked) createUpgradeButton(upg);
-});
+// Load saved progress
+function loadProgress() {
+    const saved = localStorage.getItem('67ClickerSave');
+    if(saved) {
+        const data = JSON.parse(saved);
+        count = data.count || 0;
+        perClick = data.perClick || 1;
+        total67sPerSecond = data.total67sPerSecond || 0;
+        data.upgrades.forEach((upgData, index) => {
+            upgradeList[index].bought = upgData.bought;
+            upgradeList[index].unlocked = upgData.unlocked;
+            upgradeList[index].baseCost = upgData.baseCost;
+        });
+    }
+}
+
+// Save progress
+function saveProgress() {
+    const saveData = {
+        count: count,
+        perClick: perClick,
+        total67sPerSecond: total67sPerSecond,
+        upgrades: upgradeList.map(upg => ({
+            bought: upg.bought,
+            unlocked: upg.unlocked,
+            baseCost: upg.baseCost
+        }))
+    };
+    localStorage.setItem('67ClickerSave', JSON.stringify(saveData));
+}
+
+// Unlock upgrades based on current count
+function unlockUpgrades() {
+    upgradeList.forEach(upg => {
+        if(!upg.unlocked && count >= upg.baseCost/2) {
+            upg.unlocked = true;
+            createUpgradeButton(upg);
+        }
+    });
+}
 
 // Update display
 function updateDisplay() {
@@ -123,16 +160,7 @@ function updateDisplay() {
     });
 
     unlockUpgrades();
-}
-
-// Unlock upgrades based on current count
-function unlockUpgrades() {
-    upgradeList.forEach(upg => {
-        if(!upg.unlocked && count >= upg.baseCost/2) {
-            upg.unlocked = true;
-            createUpgradeButton(upg);
-        }
-    });
+    saveProgress();
 }
 
 // Click handler
@@ -177,7 +205,16 @@ setInterval(() => {
     updateDisplay();
 }, 100);
 
+// Load saved progress before initializing upgrades
+loadProgress();
+upgradeList.forEach(upg => {
+    if(upg.unlocked && !upg.btn) createUpgradeButton(upg);
+});
+
 updateDisplay();
+
+// Optional: auto-save every 5 seconds
+setInterval(saveProgress, 5000);
 </script>
 
 </body>
