@@ -153,6 +153,8 @@ const clicker = document.getElementById("clicker");
 const upgradesContainer = document.getElementById("upgradesContainer");
 
 // ===== UPGRADES FUNCTIONS =====
+
+// Render upgrades once, create buttons
 function renderUpgrades() {
     upgradesContainer.innerHTML = '';
     upgrades.forEach((u, i) => {
@@ -160,24 +162,27 @@ function renderUpgrades() {
         if (u.unlocked) {
             const btn = document.createElement("button");
             btn.className = "upgrade";
-            const cost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
-            btn.innerHTML = `${u.name} - Cost: ${cost} <span class="upgrade-description">${u.description}</span>`;
-            btn.disabled = count < cost;
-            btn.addEventListener("click", () => buyUpgrade(i));
+            btn.dataset.index = i; // store index for reference
             upgradesContainer.appendChild(btn);
         }
     });
+    updateUpgradeButtons(); // initial update
 }
 
+// Update button text and disabled state
 function updateUpgradeButtons() {
     const buttons = upgradesContainer.getElementsByClassName("upgrade");
-    upgrades.forEach((u, i) => {
-        if (!u.unlocked && count >= u.baseCost / 2) u.unlocked = true;
+    Array.from(buttons).forEach(btn => {
+        const i = btn.dataset.index;
+        const u = upgrades[i];
         const cost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
-        if (buttons[i]) buttons[i].disabled = count < cost;
+        btn.innerHTML = `${u.name} - Cost: ${cost} <span class="upgrade-description">${u.description}</span>`;
+        btn.disabled = count < cost;
+        btn.onclick = () => buyUpgrade(i);
     });
 }
 
+// Buy upgrade function
 function buyUpgrade(i) {
     const u = upgrades[i];
     const cost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
@@ -188,7 +193,6 @@ function buyUpgrade(i) {
         if (u.type === "auto") total67sPerSecond += u.perSecond;
         updateDisplay();
         saveGame();
-        renderUpgrades();
     }
 }
 
@@ -215,8 +219,7 @@ clicker.addEventListener("click", () => {
 function updateDisplay() {
     counterEl.textContent = `67s: ${Math.floor(count)}`;
     cpsEl.textContent = `67s per second: ${total67sPerSecond}`;
-    renderUpgrades();
-    updateUpgradeButtons();
+    updateUpgradeButtons(); // update only, no re-render
 }
 
 setInterval(() => {
@@ -232,19 +235,18 @@ function saveGame() {
     localStorage.setItem('upgrades', JSON.stringify(upgrades));
 }
 
+// Initial render
 renderUpgrades();
 updateDisplay();
 
-// ===== BACKGROUND MUSIC SCRIPT =====
+// ===== BACKGROUND MUSIC =====
 const music = document.getElementById('bg-music');
 music.volume = 0.3;
 
-// Autoplay on click (required for most browsers)
 document.addEventListener('click', () => {
     if (music.paused) music.play().catch(() => {});
 });
 
-// Attempt autoplay immediately (some browsers allow)
 music.play().catch(() => {
     console.log("Autoplay blocked. Click anywhere to play music.");
 });
