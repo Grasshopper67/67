@@ -156,7 +156,13 @@ function updateDisplay() {
     cpsDisplay.textContent = `67’s per second: ${total67sPerSecond.toFixed(1)}`;
 
     upgradeList.forEach(upg => {
-        if(upg.btn) upg.btn.disabled = count < upg.baseCost;
+        if(upg.btn) {
+            upg.btn.disabled = count < upg.baseCost;
+            // Update text for multi-purchase upgrades
+            if(upg.type === "auto" || upg.type === "click") {
+                upg.btn.textContent = getUpgradeText(upg);
+            }
+        }
     });
 
     unlockUpgrades();
@@ -194,6 +200,7 @@ function buyUpgrade(upg, btn) {
             upg.bought++;
             total67sPerSecond += upg.perSecond;
             upg.baseCost = Math.floor(upg.baseCost * 1.5);
+            btn.textContent = getUpgradeText(upg); // <-- fix: update button text after purchase
         }
         updateDisplay();
     }
