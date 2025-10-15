@@ -47,8 +47,8 @@
     }
 
     #counter, #cps {
-        font-size: 1.4em; /* slightly bigger font */
-        color: #ddd;      /* same color as upgrade descriptions */
+        font-size: 1.4em;
+        color: #ddd;
         margin-bottom: 20px;
         text-align: center;
         font-family: Arial, sans-serif;
@@ -119,8 +119,14 @@
         <div id="upgradesContainer"></div>
     </div>
 
+    <!-- Background music -->
+    <audio id="bg-music" loop>
+        <source src="67-funk.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
 <script>
-// Default upgrades with descriptions
+// ===== GAME CODE =====
 const defaultUpgrades = [
     {name: "Auto 67", type: "auto", baseCost: 50, perSecond: 1, bought: 0, unlocked: true, description: "Generates 1 67 per second automatically."},
     {name: "Double 67", type: "click", baseCost: 100, perClick: 2, bought: 0, unlocked: false, description: "Adds +2 67s per click."},
@@ -131,7 +137,6 @@ const defaultUpgrades = [
     {name: "Legend 67", type: "auto", baseCost: 10000, perSecond: 100, bought: 0, unlocked: false, description: "Generates 100 67s per second automatically."}
 ];
 
-// Load saved upgrades from localStorage
 let savedUpgrades = JSON.parse(localStorage.getItem('upgrades')) || [];
 let upgrades = defaultUpgrades.map((defaultU, i) => {
     const savedU = savedUpgrades[i] || {};
@@ -147,7 +152,7 @@ const cpsEl = document.getElementById("cps");
 const clicker = document.getElementById("clicker");
 const upgradesContainer = document.getElementById("upgradesContainer");
 
-// Render upgrades
+// ===== UPGRADES FUNCTIONS =====
 function renderUpgrades() {
     upgradesContainer.innerHTML = '';
     upgrades.forEach((u, i) => {
@@ -164,19 +169,15 @@ function renderUpgrades() {
     });
 }
 
-// Update buttons and unlock upgrades dynamically
 function updateUpgradeButtons() {
     const buttons = upgradesContainer.getElementsByClassName("upgrade");
     upgrades.forEach((u, i) => {
-        if (!u.unlocked && count >= u.baseCost / 2) u.unlocked = true; // instant unlock
-
+        if (!u.unlocked && count >= u.baseCost / 2) u.unlocked = true;
         const cost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
-
         if (buttons[i]) buttons[i].disabled = count < cost;
     });
 }
 
-// Buy upgrade
 function buyUpgrade(i) {
     const u = upgrades[i];
     const cost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
@@ -191,7 +192,7 @@ function buyUpgrade(i) {
     }
 }
 
-// Floating +67 effect
+// ===== FLOATING 67 EFFECT =====
 function showFloating67(amount) {
     const span = document.createElement('span');
     span.className = 'floating67';
@@ -203,7 +204,6 @@ function showFloating67(amount) {
     setTimeout(() => { span.remove(); }, 1000);
 }
 
-// Click 67
 clicker.addEventListener("click", () => {
     count += perClick;
     showFloating67(perClick);
@@ -211,15 +211,14 @@ clicker.addEventListener("click", () => {
     saveGame();
 });
 
-// Update display and button states
+// ===== DISPLAY AND SAVE =====
 function updateDisplay() {
     counterEl.textContent = `67’s: ${Math.floor(count)}`;
     cpsEl.textContent = `67’s per second: ${total67sPerSecond}`;
-    renderUpgrades();      // ensure new upgrades appear instantly
-    updateUpgradeButtons(); // buttons enable/disable in real-time
+    renderUpgrades();
+    updateUpgradeButtons();
 }
 
-// Auto increment 67s
 setInterval(() => {
     count += total67sPerSecond / 10;
     updateDisplay();
@@ -233,9 +232,22 @@ function saveGame() {
     localStorage.setItem('upgrades', JSON.stringify(upgrades));
 }
 
-// Initial render
 renderUpgrades();
 updateDisplay();
+
+// ===== BACKGROUND MUSIC SCRIPT =====
+const music = document.getElementById('bg-music');
+music.volume = 0.3;
+
+// Autoplay on click (required for most browsers)
+document.addEventListener('click', () => {
+    if (music.paused) music.play().catch(() => {});
+});
+
+// Attempt autoplay immediately (some browsers allow)
+music.play().catch(() => {
+    console.log("Autoplay blocked. Click anywhere to play music.");
+});
 </script>
 </body>
 </html>
