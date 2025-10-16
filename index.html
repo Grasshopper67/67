@@ -14,7 +14,6 @@
         height: 100vh;
         overflow: hidden;
     }
-
     #leftPanel {
         flex: 1;
         background: #444;
@@ -26,7 +25,6 @@
         justify-content: center;
         box-sizing: border-box;
     }
-
     #game {
         flex: 2;
         display: flex;
@@ -36,7 +34,6 @@
         position: relative;
         background: transparent;
     }
-
     #sidebar {
         flex: 1;
         background: #444;
@@ -45,7 +42,6 @@
         overflow-y: auto;
         box-sizing: border-box;
     }
-
     #counter, #cps {
         font-size: 1.4em;
         color: #ddd;
@@ -53,17 +49,14 @@
         text-align: center;
         font-family: Arial, sans-serif;
     }
-
     #clicker {
         width: 150px;
         cursor: pointer;
         transition: transform 0.1s;
     }
-
     #clicker:active {
         transform: scale(0.9);
     }
-
     .upgrade {
         display: block;
         margin: 10px 0;
@@ -77,19 +70,16 @@
         background-color: #555;
         color: white;
     }
-
     .upgrade-description {
         display: block;
         font-size: 0.8em;
         color: #ddd;
         margin-top: 3px;
     }
-
     .upgrade:disabled {
         opacity: 0.5;
         cursor: not-allowed;
     }
-
     .floating67 {
         position: absolute;
         font-weight: bold;
@@ -98,7 +88,6 @@
         font-size: 20px;
         pointer-events: none;
     }
-
     @keyframes floatUp {
         0% {opacity: 1; transform: translateY(0);}
         100% {opacity: 0; transform: translateY(-100px);}
@@ -119,7 +108,6 @@
     <div id="upgradesContainer"></div>
 </div>
 
-<!-- Background music -->
 <audio id="bg-music" loop>
     <source src="67-funk.mp3" type="audio/mpeg">
     Your browser does not support the audio element.
@@ -157,7 +145,7 @@ const cpsEl = document.getElementById("cps");
 const clicker = document.getElementById("clicker");
 const upgradesContainer = document.getElementById("upgradesContainer");
 
-// ===== UPGRADES FUNCTIONS =====
+// ===== UPGRADES =====
 function renderUpgrades() {
     upgradesContainer.innerHTML = '';
     upgrades.forEach((u, i) => {
@@ -175,7 +163,6 @@ function renderUpgrades() {
     });
 }
 
-// Update only the button, avoids delay
 function buyUpgrade(i, btn) {
     const u = upgrades[i];
     const cost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
@@ -184,19 +171,17 @@ function buyUpgrade(i, btn) {
         u.bought++;
         if (u.type === "click") perClick += u.perClick;
         if (u.type === "auto") total67sPerSecond += u.perSecond;
-
-        // Update this button's text immediately
+        // Update button text and disabled state instantly
         const newCost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
         const effect = u.type === "click" ? `+${u.perClick} per click` : `+${u.perSecond} per second`;
         btn.innerHTML = `${u.name} - Cost: ${newCost} <span class="upgrade-description">${effect}</span>`;
         btn.disabled = count < newCost;
-
-        updateDisplay(false); // don't re-render all buttons
+        updateDisplay(false);
         saveGame();
     }
 }
 
-// ===== FLOATING 67 EFFECT =====
+// ===== FLOATING 67 =====
 function showFloating67(amount) {
     const span = document.createElement('span');
     span.className = 'floating67';
@@ -211,25 +196,38 @@ function showFloating67(amount) {
 clicker.addEventListener("click", () => {
     count += perClick;
     showFloating67(perClick);
-    updateDisplay();
+    updateDisplay(false);
     saveGame();
 });
 
-// ===== DISPLAY AND SAVE =====
+// ===== DISPLAY =====
 function updateDisplay(renderButtons = true) {
     counterEl.textContent = `67s: ${Math.floor(count)}`;
     cpsEl.textContent = `67s per second: ${total67sPerSecond}`;
     if (renderButtons) {
         renderUpgrades();
+    } else {
+        const buttons = upgradesContainer.getElementsByClassName("upgrade");
+        upgrades.forEach((u, i) => {
+            if (!u.unlocked && count >= u.baseCost / 2) u.unlocked = true;
+            const cost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
+            if (buttons[i]) {
+                buttons[i].disabled = count < cost;
+                const effect = u.type === "click" ? `+${u.perClick} per click` : `+${u.perSecond} per second`;
+                buttons[i].innerHTML = `${u.name} - Cost: ${cost} <span class="upgrade-description">${effect}</span>`;
+            }
+        });
     }
 }
 
+// Passive gains
 setInterval(() => {
     count += total67sPerSecond / 10;
     updateDisplay(false);
     saveGame();
 }, 100);
 
+// ===== SAVE =====
 function saveGame() {
     localStorage.setItem('count', count);
     localStorage.setItem('perClick', perClick);
@@ -237,14 +235,15 @@ function saveGame() {
     localStorage.setItem('upgrades', JSON.stringify(upgrades));
 }
 
-renderUpgrades();
-updateDisplay();
-
-// ===== BACKGROUND MUSIC SCRIPT =====
+// ===== MUSIC =====
 const music = document.getElementById('bg-music');
 music.volume = 0.3;
 document.addEventListener('click', () => { if (music.paused) music.play().catch(() => {}); });
 music.play().catch(() => { console.log("Autoplay blocked. Click anywhere to play music."); });
+
+renderUpgrades();
+updateDisplay();
 </script>
 </body>
 </html>
+
