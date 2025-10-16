@@ -106,41 +106,46 @@
 </style>
 </head>
 <body>
-    <div id="leftPanel">
-        <div id="counter">67s: 0</div>
-        <img src="https://i.postimg.cc/PxsJHCyY/67-img.jpg" alt="67 Kid" id="clicker">
-        <div id="cps">67s per second: 0</div>
-    </div>
+<div id="leftPanel">
+    <div id="counter">67s: 0</div>
+    <img src="https://i.postimg.cc/PxsJHCyY/67-img.jpg" alt="67 Kid" id="clicker">
+    <div id="cps">67s per second: 0</div>
+</div>
 
-    <div id="game"></div>
+<div id="game"></div>
 
-    <div id="sidebar">
-        <h3>Upgrades</h3>
-        <div id="upgradesContainer"></div>
-    </div>
+<div id="sidebar">
+    <h3>Upgrades</h3>
+    <div id="upgradesContainer"></div>
+</div>
 
-    <!-- Background music -->
-    <audio id="bg-music" loop>
-        <source src="67-funk.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
+<!-- Background music -->
+<audio id="bg-music" loop>
+    <source src="67-funk.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+</audio>
 
 <script>
 // ===== GAME CODE =====
 const defaultUpgrades = [
-    {name: "Auto 67", type: "auto", baseCost: 50, perSecond: 1, bought: 0, unlocked: true, description: "Generates 1 67 per second automatically."},
-    {name: "Double 67", type: "click", baseCost: 100, perClick: 2, bought: 0, unlocked: false, description: "Adds +2 67s per click."},
-    {name: "Mega 67", type: "click", baseCost: 250, perClick: 5, bought: 0, unlocked: false, description: "Adds +5 67s per click."},
-    {name: "Super 67", type: "auto", baseCost: 500, perSecond: 5, bought: 0, unlocked: false, description: "Generates 5 67s per second automatically."},
-    {name: "Ultra 67", type: "auto", baseCost: 2000, perSecond: 20, bought: 0, unlocked: false, description: "Generates 20 67s per second automatically."},
-    {name: "Hyper 67", type: "click", baseCost: 5000, perClick: 50, bought: 0, unlocked: false, description: "Adds +50 67s per click."},
-    {name: "Legend 67", type: "auto", baseCost: 10000, perSecond: 100, bought: 0, unlocked: false, description: "Generates 100 67s per second automatically."}
+    {name: "Auto 67", type: "auto", baseCost: 50, perSecond: 1, bought: 0, unlocked: true},
+    {name: "Double 67", type: "click", baseCost: 100, perClick: 2, bought: 0, unlocked: false},
+    {name: "Mega 67", type: "click", baseCost: 250, perClick: 5, bought: 0, unlocked: false},
+    {name: "Super 67", type: "auto", baseCost: 500, perSecond: 10, bought: 0, unlocked: false},
+    {name: "Ultra 67", type: "auto", baseCost: 2000, perSecond: 50, bought: 0, unlocked: false},
+    {name: "Hyper 67", type: "click", baseCost: 5000, perClick: 50, bought: 0, unlocked: false},
+    {name: "Legend 67", type: "auto", baseCost: 10000, perSecond: 200, bought: 0, unlocked: false},
+    {name: "Titan 67", type: "click", baseCost: 25000, perClick: 500, bought: 0, unlocked: false},
+    {name: "Omega 67", type: "auto", baseCost: 50000, perSecond: 1000, bought: 0, unlocked: false},
+    {name: "Infinity 67", type: "click", baseCost: 100000, perClick: 2000, bought: 0, unlocked: false},
+    {name: "Eternal 67", type: "auto", baseCost: 250000, perSecond: 5000, bought: 0, unlocked: false},
+    {name: "Mythic 67", type: "click", baseCost: 500000, perClick: 10000, bought: 0, unlocked: false}
 ];
 
 let savedUpgrades = JSON.parse(localStorage.getItem('upgrades')) || [];
 let upgrades = defaultUpgrades.map((defaultU, i) => {
     const savedU = savedUpgrades[i] || {};
-    return {...defaultU, ...savedU, description: defaultU.description};
+    return {...defaultU, ...savedU};
 });
 
 let count = parseInt(localStorage.getItem('count')) || 0;
@@ -153,8 +158,6 @@ const clicker = document.getElementById("clicker");
 const upgradesContainer = document.getElementById("upgradesContainer");
 
 // ===== UPGRADES FUNCTIONS =====
-
-// Render upgrades once, create buttons
 function renderUpgrades() {
     upgradesContainer.innerHTML = '';
     upgrades.forEach((u, i) => {
@@ -162,28 +165,18 @@ function renderUpgrades() {
         if (u.unlocked) {
             const btn = document.createElement("button");
             btn.className = "upgrade";
-            btn.dataset.index = i; // store index for reference
+            const cost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
+            const effect = u.type === "click" ? `+${u.perClick} per click` : `+${u.perSecond} per second`;
+            btn.innerHTML = `${u.name} - Cost: ${cost} <span class="upgrade-description">${effect}</span>`;
+            btn.disabled = count < cost;
+            btn.addEventListener("click", () => buyUpgrade(i, btn));
             upgradesContainer.appendChild(btn);
         }
     });
-    updateUpgradeButtons(); // initial update
 }
 
-// Update button text and disabled state
-function updateUpgradeButtons() {
-    const buttons = upgradesContainer.getElementsByClassName("upgrade");
-    Array.from(buttons).forEach(btn => {
-        const i = btn.dataset.index;
-        const u = upgrades[i];
-        const cost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
-        btn.innerHTML = `${u.name} - Cost: ${cost} <span class="upgrade-description">${u.description}</span>`;
-        btn.disabled = count < cost;
-        btn.onclick = () => buyUpgrade(i);
-    });
-}
-
-// Buy upgrade function
-function buyUpgrade(i) {
+// Update only the button, avoids delay
+function buyUpgrade(i, btn) {
     const u = upgrades[i];
     const cost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
     if (count >= cost) {
@@ -191,7 +184,14 @@ function buyUpgrade(i) {
         u.bought++;
         if (u.type === "click") perClick += u.perClick;
         if (u.type === "auto") total67sPerSecond += u.perSecond;
-        updateDisplay();
+
+        // Update this button's text immediately
+        const newCost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
+        const effect = u.type === "click" ? `+${u.perClick} per click` : `+${u.perSecond} per second`;
+        btn.innerHTML = `${u.name} - Cost: ${newCost} <span class="upgrade-description">${effect}</span>`;
+        btn.disabled = count < newCost;
+
+        updateDisplay(false); // don't re-render all buttons
         saveGame();
     }
 }
@@ -216,15 +216,17 @@ clicker.addEventListener("click", () => {
 });
 
 // ===== DISPLAY AND SAVE =====
-function updateDisplay() {
+function updateDisplay(renderButtons = true) {
     counterEl.textContent = `67s: ${Math.floor(count)}`;
     cpsEl.textContent = `67s per second: ${total67sPerSecond}`;
-    updateUpgradeButtons(); // update only, no re-render
+    if (renderButtons) {
+        renderUpgrades();
+    }
 }
 
 setInterval(() => {
     count += total67sPerSecond / 10;
-    updateDisplay();
+    updateDisplay(false);
     saveGame();
 }, 100);
 
@@ -235,21 +237,14 @@ function saveGame() {
     localStorage.setItem('upgrades', JSON.stringify(upgrades));
 }
 
-// Initial render
 renderUpgrades();
 updateDisplay();
 
-// ===== BACKGROUND MUSIC =====
+// ===== BACKGROUND MUSIC SCRIPT =====
 const music = document.getElementById('bg-music');
 music.volume = 0.3;
-
-document.addEventListener('click', () => {
-    if (music.paused) music.play().catch(() => {});
-});
-
-music.play().catch(() => {
-    console.log("Autoplay blocked. Click anywhere to play music.");
-});
+document.addEventListener('click', () => { if (music.paused) music.play().catch(() => {}); });
+music.play().catch(() => { console.log("Autoplay blocked. Click anywhere to play music."); });
 </script>
 </body>
 </html>
