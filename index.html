@@ -47,7 +47,6 @@
         color: #ddd;
         margin-bottom: 20px;
         text-align: center;
-        font-family: Arial, sans-serif;
     }
     #clicker {
         width: 150px;
@@ -92,6 +91,51 @@
         0% {opacity: 1; transform: translateY(0);}
         100% {opacity: 0; transform: translateY(-100px);}
     }
+    #viewStatsBtn {
+        margin-top: 20px;
+        padding: 10px 15px;
+        font-size: 1em;
+        cursor: pointer;
+        border: none;
+        border-radius: 5px;
+        background-color: #666;
+        color: white;
+    }
+    /* Popup overlay */
+    #statsOverlay {
+        display: none;  /* hidden by default */
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+    }
+    #statsPanel {
+        background: #222;
+        color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        min-width: 300px;
+        max-width: 90%;
+        box-shadow: 0 0 10px #000;
+        position: relative;
+    }
+    #statsPanel h3 {
+        margin-top: 0;
+    }
+    #statsContent {
+        margin-top: 10px;
+        font-size: 0.95em;
+    }
+    #closeStats {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 1.2em;
+        cursor: pointer;
+    }
 </style>
 </head>
 <body>
@@ -99,6 +143,7 @@
     <div id="counter">67s: 0</div>
     <img src="https://i.postimg.cc/PxsJHCyY/67-img.jpg" alt="67 Kid" id="clicker">
     <div id="cps">67s per second: 0</div>
+    <button id="viewStatsBtn">View Stats</button>
 </div>
 
 <div id="game"></div>
@@ -108,13 +153,22 @@
     <div id="upgradesContainer"></div>
 </div>
 
+<!-- Stats Popup -->
+<div id="statsOverlay">
+    <div id="statsPanel">
+        <span id="closeStats">&times;</span>
+        <h3>Stats</h3>
+        <div id="statsContent"></div>
+    </div>
+</div>
+
 <audio id="bg-music" loop>
     <source src="67-funk.mp3" type="audio/mpeg">
     Your browser does not support the audio element.
 </audio>
 
 <script>
-// ===== GAME CODE =====
+// ===== GAME DATA =====
 const defaultUpgrades = [
     {name: "Auto 67", type: "auto", baseCost: 50, perSecond: 1, bought: 0, unlocked: true},
     {name: "Double 67", type: "click", baseCost: 100, perClick: 2, bought: 0, unlocked: false},
@@ -149,7 +203,6 @@ const upgradesContainer = document.getElementById("upgradesContainer");
 function renderUpgrades() {
     upgradesContainer.innerHTML = '';
     upgrades.forEach((u, i) => {
-        if (!u.unlocked && count >= u.baseCost / 2) u.unlocked = true;
         if (u.unlocked) {
             const btn = document.createElement("button");
             btn.className = "upgrade";
@@ -171,14 +224,24 @@ function buyUpgrade(i, btn) {
         u.bought++;
         if (u.type === "click") perClick += u.perClick;
         if (u.type === "auto") total67sPerSecond += u.perSecond;
-        // Update button text and disabled state instantly
-        const newCost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
-        const effect = u.type === "click" ? `+${u.perClick} per click` : `+${u.perSecond} per second`;
-        btn.innerHTML = `${u.name} - Cost: ${newCost} <span class="upgrade-description">${effect}</span>`;
-        btn.disabled = count < newCost;
-        updateDisplay(false);
         saveGame();
+        renderUpgrades();
+        updateDisplay();
+        // Only update stats if the popup is open
+        if(statsOverlay.style.display === 'flex') updateStats();
     }
+}
+
+// ===== UNLOCK CHECK =====
+function checkUnlocks() {
+    let unlockedAny = false;
+    upgrades.forEach(u => {
+        if (!u.unlocked && count >= u.baseCost / 2) {
+            u.unlocked = true;
+            unlockedAny = true;
+        }
+    });
+    if (unlockedAny) renderUpgrades();
 }
 
 // ===== FLOATING 67 =====
@@ -196,34 +259,24 @@ function showFloating67(amount) {
 clicker.addEventListener("click", () => {
     count += perClick;
     showFloating67(perClick);
-    updateDisplay(false);
+    checkUnlocks();
+    updateDisplay();
+    if(statsOverlay.style.display === 'flex') updateStats();
     saveGame();
 });
 
 // ===== DISPLAY =====
-function updateDisplay(renderButtons = true) {
+function updateDisplay() {
     counterEl.textContent = `67s: ${Math.floor(count)}`;
     cpsEl.textContent = `67s per second: ${total67sPerSecond}`;
-    if (renderButtons) {
-        renderUpgrades();
-    } else {
-        const buttons = upgradesContainer.getElementsByClassName("upgrade");
-        upgrades.forEach((u, i) => {
-            if (!u.unlocked && count >= u.baseCost / 2) u.unlocked = true;
-            const cost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
-            if (buttons[i]) {
-                buttons[i].disabled = count < cost;
-                const effect = u.type === "click" ? `+${u.perClick} per click` : `+${u.perSecond} per second`;
-                buttons[i].innerHTML = `${u.name} - Cost: ${cost} <span class="upgrade-description">${effect}</span>`;
-            }
-        });
-    }
 }
 
-// Passive gains
+// ===== PASSIVE GAINS =====
 setInterval(() => {
     count += total67sPerSecond / 10;
-    updateDisplay(false);
+    checkUnlocks();
+    updateDisplay();
+    if(statsOverlay.style.display === 'flex') updateStats();
     saveGame();
 }, 100);
 
@@ -235,15 +288,44 @@ function saveGame() {
     localStorage.setItem('upgrades', JSON.stringify(upgrades));
 }
 
+// ===== STATS MODAL =====
+const viewStatsBtn = document.getElementById('viewStatsBtn');
+const statsOverlay = document.getElementById('statsOverlay');
+const statsContent = document.getElementById('statsContent');
+const closeStats = document.getElementById('closeStats');
+
+viewStatsBtn.addEventListener('click', () => {
+    updateStats();
+    statsOverlay.style.display = 'flex';
+});
+
+closeStats.addEventListener('click', () => {
+    statsOverlay.style.display = 'none';
+});
+
+statsOverlay.addEventListener('click', (e) => {
+    if (e.target === statsOverlay) statsOverlay.style.display = 'none';
+});
+
+function updateStats() {
+    const totalUpgradesBought = upgrades.reduce((sum, u) => sum + u.bought, 0);
+    statsContent.innerHTML = `
+        <strong>Total 67s:</strong> ${Math.floor(count)}<br>
+        <strong>67s per click:</strong> ${perClick}<br>
+        <strong>67s per second:</strong> ${total67sPerSecond}<br>
+        <strong>Total upgrades bought:</strong> ${totalUpgradesBought}
+    `;
+}
+
 // ===== MUSIC =====
 const music = document.getElementById('bg-music');
 music.volume = 0.3;
 document.addEventListener('click', () => { if (music.paused) music.play().catch(() => {}); });
 music.play().catch(() => { console.log("Autoplay blocked. Click anywhere to play music."); });
 
+// ===== INITIAL RENDER =====
 renderUpgrades();
 updateDisplay();
 </script>
 </body>
 </html>
-
