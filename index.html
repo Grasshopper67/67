@@ -5,140 +5,95 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>67 Clicker</title>
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: url(https://media1.tenor.com/m/wXfbbjRyyWcAAAAd/scp-067-67.gif) center center / cover no-repeat fixed;
-        display: flex;
-        margin: 0;
-        padding: 0;
-        height: 100vh;
-        overflow: hidden;
-    }
-    #leftPanel {
-        flex: 1;
-        background: #444;
-        color: black;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        box-sizing: border-box;
-    }
-    #game {
-        flex: 2;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        background: transparent;
-    }
-    #sidebar {
-        flex: 1;
-        background: #444;
-        color: black;
-        padding: 20px;
-        overflow-y: auto;
-        box-sizing: border-box;
-    }
-    #counter, #cps {
-        font-size: 1.4em;
-        color: #ddd;
-        margin-bottom: 20px;
-        text-align: center;
-    }
-    #clicker {
-        width: 150px;
-        cursor: pointer;
-        transition: transform 0.1s;
-    }
-    #clicker:active {
-        transform: scale(0.9);
-    }
-    .upgrade {
-        display: block;
-        margin: 10px 0;
-        padding: 10px;
-        width: 100%;
-        font-size: 1em;
-        cursor: pointer;
-        text-align: left;
-        border: none;
-        border-radius: 5px;
-        background-color: #555;
-        color: white;
-    }
-    .upgrade-description {
-        display: block;
-        font-size: 0.8em;
-        color: #ddd;
-        margin-top: 3px;
-    }
-    .upgrade:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-    .floating67 {
-        position: absolute;
-        font-weight: bold;
-        color: #ff0;
-        animation: floatUp 1s forwards;
-        font-size: 20px;
-        pointer-events: none;
-    }
-    @keyframes floatUp {
-        0% {opacity: 1; transform: translateY(0);}
-        100% {opacity: 0; transform: translateY(-100px);}
-    }
-    #viewStatsBtn {
-        margin-top: 20px;
-        padding: 10px 15px;
-        font-size: 1em;
-        cursor: pointer;
-        border: none;
-        border-radius: 5px;
-        background-color: #666;
-        color: white;
-    }
-    /* Popup overlay */
-    #statsOverlay {
-        display: none;  /* hidden by default */
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5);
-        align-items: center;
-        justify-content: center;
-        z-index: 999;
-    }
-    #statsPanel {
-        background: #222;
-        color: #fff;
-        padding: 20px;
-        border-radius: 10px;
-        min-width: 300px;
-        max-width: 90%;
-        box-shadow: 0 0 10px #000;
-        position: relative;
-    }
-    #statsPanel h3 {
-        margin-top: 0;
-    }
-    #statsContent {
-        margin-top: 10px;
-        font-size: 0.95em;
-    }
-    #closeStats {
-        position: absolute;
-        top: 10px;
-        right: 15px;
-        font-size: 1.2em;
-        cursor: pointer;
-    }
+body {
+    font-family: Arial, sans-serif;
+    background: url(https://media1.tenor.com/m/wXfbbjRyyWcAAAAd/scp-067-67.gif) center center / cover no-repeat fixed;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow: hidden;
+}
+#leftPanel {
+    flex: 1;
+    background: #444;
+    color: black;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+#game { flex: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; background: transparent; }
+#sidebar {
+    flex: 1;
+    background: #444;
+    color: black;
+    padding: 20px;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+#counter, #cps { font-size: 1.4em; color: #ddd; margin-bottom: 20px; text-align: center; }
+#clicker { width: 150px; cursor: pointer; transition: transform 0.1s; }
+#clicker:active { transform: scale(0.9); }
+.upgrade {
+    display: block;
+    margin: 10px 0;
+    padding: 10px;
+    width: 100%;
+    font-size: 1em;
+    cursor: pointer;
+    text-align: left;
+    border: none;
+    border-radius: 5px;
+    background-color: #555;
+    color: white;
+    opacity: 0.5;
+}
+.upgrade.enabled { opacity: 1; }
+.upgrade-description {
+    display: block;
+    font-size: 0.8em;
+    color: #ddd;
+    margin-top: 3px;
+}
+.floating67 {
+    position: absolute;
+    font-weight: bold;
+    color: #ff0;
+    animation: floatUp 1s forwards;
+    font-size: 20px;
+    pointer-events: none;
+}
+@keyframes floatUp { 0% {opacity:1; transform:translateY(0);} 100% {opacity:0; transform:translateY(-100px);} }
+#viewStatsBtn { margin-top: 20px; padding: 10px 15px; font-size: 1em; cursor: pointer; border: none; border-radius: 5px; background-color: #666; color: white; }
+#statsOverlay {
+    display: none;
+    position: fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background: rgba(0,0,0,0.5);
+    align-items:center; justify-content:center;
+    z-index:999;
+}
+#statsPanel {
+    background: #222;
+    color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    min-width: 300px;
+    max-width: 90%;
+    box-shadow: 0 0 10px #000;
+    position: relative;
+}
+#statsPanel h3 { margin-top:0; }
+#statsContent { margin-top:10px; font-size:0.95em; }
+#closeStats { position:absolute; top:10px; right:15px; font-size:1.2em; cursor:pointer; }
 </style>
 </head>
 <body>
+
 <div id="leftPanel">
     <div id="counter">67s: 0</div>
     <img src="https://i.postimg.cc/PxsJHCyY/67-img.jpg" alt="67 Kid" id="clicker">
@@ -153,7 +108,6 @@
     <div id="upgradesContainer"></div>
 </div>
 
-<!-- Stats Popup -->
 <div id="statsOverlay">
     <div id="statsPanel">
         <span id="closeStats">&times;</span>
@@ -164,35 +118,39 @@
 
 <audio id="bg-music" loop>
     <source src="67-funk.mp3" type="audio/mpeg">
-    Your browser does not support the audio element.
 </audio>
 
 <script>
-// ===== GAME DATA =====
+// ===== DATA (Slower progression) =====
 const defaultUpgrades = [
-    {name: "Auto 67", type: "auto", baseCost: 50, perSecond: 1, bought: 0, unlocked: true},
-    {name: "Double 67", type: "click", baseCost: 100, perClick: 2, bought: 0, unlocked: false},
-    {name: "Mega 67", type: "click", baseCost: 250, perClick: 5, bought: 0, unlocked: false},
-    {name: "Super 67", type: "auto", baseCost: 500, perSecond: 10, bought: 0, unlocked: false},
-    {name: "Ultra 67", type: "auto", baseCost: 2000, perSecond: 50, bought: 0, unlocked: false},
-    {name: "Hyper 67", type: "click", baseCost: 5000, perClick: 50, bought: 0, unlocked: false},
-    {name: "Legend 67", type: "auto", baseCost: 10000, perSecond: 200, bought: 0, unlocked: false},
-    {name: "Titan 67", type: "click", baseCost: 25000, perClick: 500, bought: 0, unlocked: false},
-    {name: "Omega 67", type: "auto", baseCost: 50000, perSecond: 1000, bought: 0, unlocked: false},
-    {name: "Infinity 67", type: "click", baseCost: 100000, perClick: 2000, bought: 0, unlocked: false},
-    {name: "Eternal 67", type: "auto", baseCost: 250000, perSecond: 5000, bought: 0, unlocked: false},
-    {name: "Mythic 67", type: "click", baseCost: 500000, perClick: 10000, bought: 0, unlocked: false}
+    {name:"Auto 67",type:"auto",baseCost:50,perSecond:0.5,bought:0,unlocked:true},
+    {name:"Double 67",type:"click",baseCost:120,perClick:1,bought:0,unlocked:false},
+    {name:"Mega 67",type:"click",baseCost:300,perClick:2,bought:0,unlocked:false},
+    {name:"Super 67",type:"auto",baseCost:600,perSecond:5,bought:0,unlocked:false},
+    {name:"Ultra 67",type:"auto",baseCost:2500,perSecond:20,bought:0,unlocked:false},
+    {name:"Hyper 67",type:"click",baseCost:6000,perClick:25,bought:0,unlocked:false},
+    {name:"Legend 67",type:"auto",baseCost:12000,perSecond:80,bought:0,unlocked:false},
+    {name:"Titan 67",type:"click",baseCost:30000,perClick:250,bought:0,unlocked:false},
+    {name:"Omega 67",type:"auto",baseCost:60000,perSecond:400,bought:0,unlocked:false},
+    {name:"Infinity 67",type:"click",baseCost:120000,perClick:1000,bought:0,unlocked:false},
+    {name:"Eternal 67",type:"auto",baseCost:300000,perSecond:2500,bought:0,unlocked:false},
+    {name:"Mythic 67",type:"click",baseCost:600000,perClick:5000,bought:0,unlocked:false},
+    {name:"Quantum 67",type:"auto",baseCost:1200000,perSecond:10000,bought:0,unlocked:false},
+    {name:"Galactic 67",type:"click",baseCost:3000000,perClick:25000,bought:0,unlocked:false},
+    {name:"Celestial 67",type:"auto",baseCost:6000000,perSecond:50000,bought:0,unlocked:false},
+    {name:"Cosmic 67",type:"click",baseCost:12000000,perClick:125000,bought:0,unlocked:false},
+    {name:"Supernova 67",type:"auto",baseCost:30000000,perSecond:250000,bought:0,unlocked:false},
+    {name:"Galaxy 67",type:"click",baseCost:60000000,perClick:500000,bought:0,unlocked:false},
+    {name:"Infinity Plus 67",type:"auto",baseCost:120000000,perSecond:1000000,bought:0,unlocked:false},
+    {name:"Ultimate 67",type:"click",baseCost:300000000,perClick:5000000,bought:0,unlocked:false}
 ];
 
 let savedUpgrades = JSON.parse(localStorage.getItem('upgrades')) || [];
-let upgrades = defaultUpgrades.map((defaultU, i) => {
-    const savedU = savedUpgrades[i] || {};
-    return {...defaultU, ...savedU};
-});
+let upgrades = defaultUpgrades.map((u,i)=>({...u,...savedUpgrades[i]}));
 
-let count = parseInt(localStorage.getItem('count')) || 0;
-let perClick = parseInt(localStorage.getItem('perClick')) || 1;
-let total67sPerSecond = parseInt(localStorage.getItem('total67sPerSecond')) || 0;
+let count = parseFloat(localStorage.getItem('count'))||0;
+let perClick = parseFloat(localStorage.getItem('perClick'))||1;
+let total67sPerSecond = parseFloat(localStorage.getItem('total67sPerSecond'))||0;
 
 const counterEl = document.getElementById("counter");
 const cpsEl = document.getElementById("cps");
@@ -200,116 +158,123 @@ const clicker = document.getElementById("clicker");
 const upgradesContainer = document.getElementById("upgradesContainer");
 
 // ===== UPGRADES =====
-function renderUpgrades() {
-    upgradesContainer.innerHTML = '';
-    upgrades.forEach((u, i) => {
-        if (u.unlocked) {
-            const btn = document.createElement("button");
-            btn.className = "upgrade";
-            const cost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
-            const effect = u.type === "click" ? `+${u.perClick} per click` : `+${u.perSecond} per second`;
-            btn.innerHTML = `${u.name} - Cost: ${cost} <span class="upgrade-description">${effect}</span>`;
-            btn.disabled = count < cost;
-            btn.addEventListener("click", () => buyUpgrade(i, btn));
-            upgradesContainer.appendChild(btn);
+function renderUpgrades(){
+    if(upgradesContainer.children.length === 0){
+        upgrades.forEach((u,i)=>{
+            if(u.unlocked){
+                const btn = document.createElement("button");
+                btn.className="upgrade";
+                btn.dataset.index = i;
+                const effect = u.type==="click"?`+${u.perClick} per click`:`+${u.perSecond} per second`;
+                btn.innerHTML=`${u.name} - Cost: ${Math.floor(u.baseCost*Math.pow(1.5,u.bought))} <span class="upgrade-description">${effect}</span>`;
+                btn.addEventListener("click", ()=> buyUpgrade(i, btn));
+                upgradesContainer.appendChild(btn);
+            }
+        });
+    }
+    updateUpgradeButtons();
+}
+
+function updateUpgradeButtons(){
+    upgradesContainer.querySelectorAll('button').forEach(btn=>{
+        const i = btn.dataset.index;
+        const u = upgrades[i];
+        const cost = Math.floor(u.baseCost*Math.pow(1.5,u.bought));
+        if(count >= cost){
+            btn.disabled = false;
+            btn.classList.add('enabled');
+        } else {
+            btn.disabled = true;
+            btn.classList.remove('enabled');
         }
+        const effect = u.type==="click"?`+${u.perClick} per click`:`+${u.perSecond} per second`;
+        btn.innerHTML = `${u.name} - Cost: ${cost} <span class="upgrade-description">${effect}</span>`;
     });
 }
 
-function buyUpgrade(i, btn) {
+function buyUpgrade(i,btn){
     const u = upgrades[i];
-    const cost = Math.floor(u.baseCost * Math.pow(1.5, u.bought));
-    if (count >= cost) {
-        count -= cost;
+    const cost = Math.floor(u.baseCost*Math.pow(1.5,u.bought));
+    if(count>=cost){
+        count-=cost;
         u.bought++;
-        if (u.type === "click") perClick += u.perClick;
-        if (u.type === "auto") total67sPerSecond += u.perSecond;
+        if(u.type==="click") perClick+=u.perClick;
+        if(u.type==="auto") total67sPerSecond+=u.perSecond;
         saveGame();
-        renderUpgrades();
         updateDisplay();
-        // Only update stats if the popup is open
-        if(statsOverlay.style.display === 'flex') updateStats();
+        if(statsOverlay.style.display==="flex") updateStats();
     }
 }
 
-// ===== UNLOCK CHECK =====
-function checkUnlocks() {
-    let unlockedAny = false;
-    upgrades.forEach(u => {
-        if (!u.unlocked && count >= u.baseCost / 2) {
-            u.unlocked = true;
-            unlockedAny = true;
-        }
-    });
-    if (unlockedAny) renderUpgrades();
+// ===== DISPLAY =====
+function updateDisplay(){
+    counterEl.textContent=`67s: ${Math.floor(count)}`;
+    cpsEl.textContent=`67s per second: ${total67sPerSecond}`;
+    updateUpgradeButtons();
 }
 
-// ===== FLOATING 67 =====
-function showFloating67(amount) {
-    const span = document.createElement('span');
-    span.className = 'floating67';
-    span.textContent = `+${amount}`;
-    const rect = clicker.getBoundingClientRect();
-    span.style.left = rect.left + rect.width/2 + 'px';
-    span.style.top = rect.top + 'px';
+function showFloating67(amount){
+    const span=document.createElement('span');
+    span.className='floating67';
+    span.textContent=`+${amount}`;
+    const rect=clicker.getBoundingClientRect();
+    span.style.left=rect.left+rect.width/2+'px';
+    span.style.top=rect.top+'px';
     document.body.appendChild(span);
-    setTimeout(() => { span.remove(); }, 1000);
+    setTimeout(()=>span.remove(),1000);
 }
 
-clicker.addEventListener("click", () => {
-    count += perClick;
+// ===== CLICK =====
+clicker.addEventListener('click',()=>{
+    count+=perClick;
     showFloating67(perClick);
-    checkUnlocks();
     updateDisplay();
-    if(statsOverlay.style.display === 'flex') updateStats();
     saveGame();
 });
 
-// ===== DISPLAY =====
-function updateDisplay() {
-    counterEl.textContent = `67s: ${Math.floor(count)}`;
-    cpsEl.textContent = `67s per second: ${total67sPerSecond}`;
-}
-
-// ===== PASSIVE GAINS =====
-setInterval(() => {
-    count += total67sPerSecond / 10;
-    checkUnlocks();
+// ===== AUTO GAIN =====
+setInterval(()=>{
+    count+=total67sPerSecond/10;
     updateDisplay();
-    if(statsOverlay.style.display === 'flex') updateStats();
     saveGame();
-}, 100);
+},100);
+
+// ===== AUTO UNLOCK UPGRADES =====
+setInterval(()=>{
+    let unlockedNew=false;
+    upgrades.forEach(u=>{
+        if(!u.unlocked && count>=u.baseCost/2){
+            u.unlocked=true;
+            unlockedNew=true;
+        }
+    });
+    if(unlockedNew) renderUpgrades();
+},500);
 
 // ===== SAVE =====
-function saveGame() {
-    localStorage.setItem('count', count);
-    localStorage.setItem('perClick', perClick);
-    localStorage.setItem('total67sPerSecond', total67sPerSecond);
-    localStorage.setItem('upgrades', JSON.stringify(upgrades));
+function saveGame(){
+    localStorage.setItem('count',count);
+    localStorage.setItem('perClick',perClick);
+    localStorage.setItem('total67sPerSecond',total67sPerSecond);
+    localStorage.setItem('upgrades',JSON.stringify(upgrades));
 }
 
-// ===== STATS MODAL =====
+// ===== STATS POPUP =====
 const viewStatsBtn = document.getElementById('viewStatsBtn');
 const statsOverlay = document.getElementById('statsOverlay');
 const statsContent = document.getElementById('statsContent');
 const closeStats = document.getElementById('closeStats');
 
-viewStatsBtn.addEventListener('click', () => {
+viewStatsBtn.addEventListener('click',()=>{
     updateStats();
-    statsOverlay.style.display = 'flex';
+    statsOverlay.style.display='flex';
 });
+closeStats.addEventListener('click',()=>statsOverlay.style.display='none');
+statsOverlay.addEventListener('click',(e)=>{if(e.target===statsOverlay) statsOverlay.style.display='none';});
 
-closeStats.addEventListener('click', () => {
-    statsOverlay.style.display = 'none';
-});
-
-statsOverlay.addEventListener('click', (e) => {
-    if (e.target === statsOverlay) statsOverlay.style.display = 'none';
-});
-
-function updateStats() {
-    const totalUpgradesBought = upgrades.reduce((sum, u) => sum + u.bought, 0);
-    statsContent.innerHTML = `
+function updateStats(){
+    const totalUpgradesBought=upgrades.reduce((sum,u)=>sum+u.bought,0);
+    statsContent.innerHTML=`
         <strong>Total 67s:</strong> ${Math.floor(count)}<br>
         <strong>67s per click:</strong> ${perClick}<br>
         <strong>67s per second:</strong> ${total67sPerSecond}<br>
@@ -318,12 +283,12 @@ function updateStats() {
 }
 
 // ===== MUSIC =====
-const music = document.getElementById('bg-music');
-music.volume = 0.3;
-document.addEventListener('click', () => { if (music.paused) music.play().catch(() => {}); });
-music.play().catch(() => { console.log("Autoplay blocked. Click anywhere to play music."); });
+const music=document.getElementById('bg-music');
+music.volume=0.3;
+document.addEventListener('click',()=>{if(music.paused) music.play().catch(()=>{});});
+music.play().catch(()=>{console.log("Autoplay blocked.")});
 
-// ===== INITIAL RENDER =====
+// ===== INITIAL =====
 renderUpgrades();
 updateDisplay();
 </script>
