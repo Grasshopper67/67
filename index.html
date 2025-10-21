@@ -50,6 +50,7 @@ body {
     background-color: #555;
     color: white;
     opacity: 0.5;
+    transition: opacity 0.2s;
 }
 .upgrade.enabled { opacity: 1; }
 .upgrade-description {
@@ -66,8 +67,20 @@ body {
     font-size: 20px;
     pointer-events: none;
 }
-@keyframes floatUp { 0% {opacity:1; transform:translateY(0);} 100% {opacity:0; transform:translateY(-100px);} }
-#viewStatsBtn { margin-top: 20px; padding: 10px 15px; font-size: 1em; cursor: pointer; border: none; border-radius: 5px; background-color: #666; color: white; }
+@keyframes floatUp {
+    0% {opacity:1; transform:translateY(0);}
+    100% {opacity:0; transform:translateY(-100px);}
+}
+#viewStatsBtn {
+    margin-top: 20px;
+    padding: 10px 15px;
+    font-size: 1em;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: #666;
+    color: white;
+}
 #statsOverlay {
     display: none;
     position: fixed;
@@ -121,29 +134,24 @@ body {
 </audio>
 
 <script>
-// ===== DATA (Slower progression) =====
-const defaultUpgrades = [
-    {name:"Auto 67",type:"auto",baseCost:50,perSecond:0.5,bought:0,unlocked:true},
-    {name:"Double 67",type:"click",baseCost:120,perClick:1,bought:0,unlocked:false},
-    {name:"Mega 67",type:"click",baseCost:300,perClick:2,bought:0,unlocked:false},
-    {name:"Super 67",type:"auto",baseCost:600,perSecond:5,bought:0,unlocked:false},
-    {name:"Ultra 67",type:"auto",baseCost:2500,perSecond:20,bought:0,unlocked:false},
-    {name:"Hyper 67",type:"click",baseCost:6000,perClick:25,bought:0,unlocked:false},
-    {name:"Legend 67",type:"auto",baseCost:12000,perSecond:80,bought:0,unlocked:false},
-    {name:"Titan 67",type:"click",baseCost:30000,perClick:250,bought:0,unlocked:false},
-    {name:"Omega 67",type:"auto",baseCost:60000,perSecond:400,bought:0,unlocked:false},
-    {name:"Infinity 67",type:"click",baseCost:120000,perClick:1000,bought:0,unlocked:false},
-    {name:"Eternal 67",type:"auto",baseCost:300000,perSecond:2500,bought:0,unlocked:false},
-    {name:"Mythic 67",type:"click",baseCost:600000,perClick:5000,bought:0,unlocked:false},
-    {name:"Quantum 67",type:"auto",baseCost:1200000,perSecond:10000,bought:0,unlocked:false},
-    {name:"Galactic 67",type:"click",baseCost:3000000,perClick:25000,bought:0,unlocked:false},
-    {name:"Celestial 67",type:"auto",baseCost:6000000,perSecond:50000,bought:0,unlocked:false},
-    {name:"Cosmic 67",type:"click",baseCost:12000000,perClick:125000,bought:0,unlocked:false},
-    {name:"Supernova 67",type:"auto",baseCost:30000000,perSecond:250000,bought:0,unlocked:false},
-    {name:"Galaxy 67",type:"click",baseCost:60000000,perClick:500000,bought:0,unlocked:false},
-    {name:"Infinity Plus 67",type:"auto",baseCost:120000000,perSecond:1000000,bought:0,unlocked:false},
-    {name:"Ultimate 67",type:"click",baseCost:300000000,perClick:5000000,bought:0,unlocked:false}
+// ===== DATA (40 upgrades, balanced slower game) =====
+const defaultUpgrades = [];
+const upgradeNames = [
+    "Auto 67","Double 67","Mega 67","Super 67","Ultra 67","Hyper 67","Legend 67","Titan 67",
+    "Omega 67","Infinity 67","Eternal 67","Mythic 67","Quantum 67","Galactic 67","Celestial 67",
+    "Cosmic 67","Supernova 67","Galaxy 67","Infinity Plus 67","Ultimate 67","Transcendent 67",
+    "Ethereal 67","Spectral 67","Divine 67","Astral 67","Void 67","Chrono 67","Dimensional 67",
+    "Parallel 67","Singularity 67","Beyond 67","Omniversal 67","Abyssal 67","Hypernova 67",
+    "Nebula 67","Anomaly 67","Oblivion 67","Prime 67","Eclipse 67","Endless 67"
 ];
+
+upgradeNames.forEach((name,i)=>{
+    const isClick = i%2!==0;
+    const baseCost = 150 * Math.pow(2.3,i);
+    const perClick = isClick ? Math.floor(1 * Math.pow(1.9,i)) : 0;
+    const perSecond = !isClick ? Math.floor(0.3 * Math.pow(1.8,i)) : 0;
+    defaultUpgrades.push({name,type:isClick?"click":"auto",baseCost,perClick,perSecond,bought:0,unlocked:i===0});
+});
 
 let savedUpgrades = JSON.parse(localStorage.getItem('upgrades')) || [];
 let upgrades = defaultUpgrades.map((u,i)=>({...u,...savedUpgrades[i]}));
@@ -157,121 +165,102 @@ const cpsEl = document.getElementById("cps");
 const clicker = document.getElementById("clicker");
 const upgradesContainer = document.getElementById("upgradesContainer");
 
-// ===== UPGRADES =====
+// ===== RENDER UPGRADES =====
 function renderUpgrades(){
-    if(upgradesContainer.children.length === 0){
-        upgrades.forEach((u,i)=>{
-            if(u.unlocked){
-                const btn = document.createElement("button");
-                btn.className="upgrade";
-                btn.dataset.index = i;
-                const effect = u.type==="click"?`+${u.perClick} per click`:`+${u.perSecond} per second`;
-                btn.innerHTML=`${u.name} - Cost: ${Math.floor(u.baseCost*Math.pow(1.5,u.bought))} <span class="upgrade-description">${effect}</span>`;
-                btn.addEventListener("click", ()=> buyUpgrade(i, btn));
-                upgradesContainer.appendChild(btn);
-            }
-        });
-    }
+    upgradesContainer.innerHTML = '';
+    upgrades.forEach((u,i)=>{
+        if(u.unlocked){
+            const btn = document.createElement("button");
+            btn.className = "upgrade";
+            btn.dataset.index = i;
+            const effect = u.type==="click"?`+${u.perClick} per click`:`+${u.perSecond} per second`;
+            const cost = Math.floor(u.baseCost*Math.pow(1.7,u.bought));
+            btn.innerHTML = `${u.name} - Cost: ${cost} <span class="upgrade-description">${effect}</span>`;
+            btn.addEventListener("click",()=>buyUpgrade(i,btn));
+            upgradesContainer.appendChild(btn);
+        }
+    });
     updateUpgradeButtons();
 }
 
 function updateUpgradeButtons(){
-    upgradesContainer.querySelectorAll('button').forEach(btn=>{
+    const buttons = upgradesContainer.querySelectorAll("button");
+    buttons.forEach(btn=>{
         const i = btn.dataset.index;
         const u = upgrades[i];
-        const cost = Math.floor(u.baseCost*Math.pow(1.5,u.bought));
-        if(count >= cost){
-            btn.disabled = false;
-            btn.classList.add('enabled');
-        } else {
-            btn.disabled = true;
-            btn.classList.remove('enabled');
-        }
+        const cost = Math.floor(u.baseCost*Math.pow(1.7,u.bought));
+        btn.disabled = count < cost;
+        btn.style.opacity = count >= cost ? 1 : 0.5;
         const effect = u.type==="click"?`+${u.perClick} per click`:`+${u.perSecond} per second`;
         btn.innerHTML = `${u.name} - Cost: ${cost} <span class="upgrade-description">${effect}</span>`;
     });
 }
 
-function buyUpgrade(i,btn){
+// ===== BUY UPGRADE (no delay) =====
+function buyUpgrade(i){
     const u = upgrades[i];
-    const cost = Math.floor(u.baseCost*Math.pow(1.5,u.bought));
-    if(count>=cost){
-        count-=cost;
+    const cost = Math.floor(u.baseCost*Math.pow(1.7,u.bought));
+    if(count >= cost){
+        count -= cost;
         u.bought++;
-        if(u.type==="click") perClick+=u.perClick;
-        if(u.type==="auto") total67sPerSecond+=u.perSecond;
-        saveGame();
+        if(u.type==="click") perClick += u.perClick;
+        if(u.type==="auto") total67sPerSecond += u.perSecond;
         updateDisplay();
-        if(statsOverlay.style.display==="flex") updateStats();
+        updateUpgradeButtons();
+        saveGame(); // async save, no delay
     }
 }
 
-// ===== DISPLAY =====
+// ===== DISPLAY / CLICK / AUTO =====
 function updateDisplay(){
-    counterEl.textContent=`67s: ${Math.floor(count)}`;
-    cpsEl.textContent=`67s per second: ${total67sPerSecond}`;
-    updateUpgradeButtons();
+    counterEl.textContent = `67s: ${Math.floor(count)}`;
+    cpsEl.textContent = `67s per second: ${total67sPerSecond}`;
 }
-
 function showFloating67(amount){
-    const span=document.createElement('span');
-    span.className='floating67';
-    span.textContent=`+${amount}`;
-    const rect=clicker.getBoundingClientRect();
-    span.style.left=rect.left+rect.width/2+'px';
-    span.style.top=rect.top+'px';
+    const span = document.createElement('span');
+    span.className = 'floating67';
+    span.textContent = `+${amount}`;
+    const rect = clicker.getBoundingClientRect();
+    span.style.left = rect.left+rect.width/2+'px';
+    span.style.top = rect.top+'px';
     document.body.appendChild(span);
     setTimeout(()=>span.remove(),1000);
 }
-
-// ===== CLICK =====
 clicker.addEventListener('click',()=>{
-    count+=perClick;
+    count += perClick;
     showFloating67(perClick);
     updateDisplay();
-    saveGame();
 });
-
-// ===== AUTO GAIN =====
 setInterval(()=>{
-    count+=total67sPerSecond/10;
+    count += total67sPerSecond/10;
     updateDisplay();
-    saveGame();
 },100);
-
-// ===== AUTO UNLOCK UPGRADES =====
 setInterval(()=>{
-    let unlockedNew=false;
     upgrades.forEach(u=>{
-        if(!u.unlocked && count>=u.baseCost/2){
-            u.unlocked=true;
-            unlockedNew=true;
-        }
+        if(!u.unlocked && count >= u.baseCost/2) u.unlocked = true;
     });
-    if(unlockedNew) renderUpgrades();
-},500);
+    renderUpgrades();
+},1000);
 
-// ===== SAVE =====
+// ===== SAVE / LOAD / STATS =====
 function saveGame(){
-    localStorage.setItem('count',count);
-    localStorage.setItem('perClick',perClick);
-    localStorage.setItem('total67sPerSecond',total67sPerSecond);
-    localStorage.setItem('upgrades',JSON.stringify(upgrades));
+    requestIdleCallback(()=>{
+        localStorage.setItem('count',count);
+        localStorage.setItem('perClick',perClick);
+        localStorage.setItem('total67sPerSecond',total67sPerSecond);
+        localStorage.setItem('upgrades',JSON.stringify(upgrades));
+    });
 }
-
-// ===== STATS POPUP =====
-const viewStatsBtn = document.getElementById('viewStatsBtn');
-const statsOverlay = document.getElementById('statsOverlay');
-const statsContent = document.getElementById('statsContent');
-const closeStats = document.getElementById('closeStats');
-
+const viewStatsBtn=document.getElementById('viewStatsBtn');
+const statsOverlay=document.getElementById('statsOverlay');
+const statsContent=document.getElementById('statsContent');
+const closeStats=document.getElementById('closeStats');
 viewStatsBtn.addEventListener('click',()=>{
     updateStats();
     statsOverlay.style.display='flex';
 });
 closeStats.addEventListener('click',()=>statsOverlay.style.display='none');
-statsOverlay.addEventListener('click',(e)=>{if(e.target===statsOverlay) statsOverlay.style.display='none';});
-
+statsOverlay.addEventListener('click',e=>{if(e.target===statsOverlay)statsOverlay.style.display='none';});
 function updateStats(){
     const totalUpgradesBought=upgrades.reduce((sum,u)=>sum+u.bought,0);
     statsContent.innerHTML=`
@@ -288,7 +277,6 @@ music.volume=0.3;
 document.addEventListener('click',()=>{if(music.paused) music.play().catch(()=>{});});
 music.play().catch(()=>{console.log("Autoplay blocked.")});
 
-// ===== INITIAL =====
 renderUpgrades();
 updateDisplay();
 </script>
