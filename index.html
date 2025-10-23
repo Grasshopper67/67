@@ -135,11 +135,10 @@ body {
 
 <script>
 // ===== Balanced Hard progression (40 upgrades) =====
-// Parameters for curve
-const COST_MULT = 2.5;    // each upgrade cost ≈ 2.5× previous
-const POWER_MULT = 2.0;   // each upgrade power ≈ 2× previous
-const START_COST = 100;   // first upgrade base cost (slightly adjusted to fit curve)
-const START_POWER = 1;    // generic starting power (applies to click or auto scaled)
+const COST_MULT = 2.5;
+const POWER_MULT = 2.0;
+const START_COST = 100;
+const START_POWER = 1;
 const upgradeNames = [
     "Auto 67","Double 67","Mega 67","Super 67","Ultra 67","Hyper 67","Legend 67","Titan 67",
     "Omega 67","Infinity 67","Eternal 67","Mythic 67","Quantum 67","Galactic 67","Celestial 67",
@@ -149,20 +148,13 @@ const upgradeNames = [
     "Nebula 67","Anomaly 67","Oblivion 67","Prime 67","Eclipse 67","Endless 67"
 ];
 
-// Build upgrades with a smooth progression so every next upgrade is worth it.
 const defaultUpgrades = [];
 for(let i=0;i<upgradeNames.length;i++){
     const name = upgradeNames[i];
-    // Maintain alternating pattern: index 0 = auto (to match older naming), odd = click
-    const isClick = (i % 2) === 1; // same pattern as your prior script
-    // Cost grows smoothly: START_COST * COST_MULT^i
-    // Use big integer-safe rounding (may get large but JS Number can represent up to ~1e308)
+    const isClick = (i % 2) === 1;
     const baseCost = Math.max(1, Math.floor(START_COST * Math.pow(COST_MULT, i)));
-    // Generic power that doubles every rank
     const genericPower = START_POWER * Math.pow(POWER_MULT, i);
-    // Assign to click or auto, scaled suitably:
     const perClick = isClick ? Math.max(1, Math.round(genericPower)) : 0;
-    // auto income should be in fractional/decimal numbers for earlier tiers; keep two decimals
     const perSecond = !isClick ? Number((genericPower * 0.5).toFixed(2)) : 0;
 
     defaultUpgrades.push({
@@ -172,22 +164,19 @@ for(let i=0;i<upgradeNames.length;i++){
         perClick,
         perSecond,
         bought: 0,
-        // only first upgrade unlocked at start
         unlocked: i === 0
     });
 }
 
-// ===== Load / state =====
 let savedUpgrades = JSON.parse(localStorage.getItem('upgrades')) || [];
 let upgrades = defaultUpgrades.map((u,i)=>({
     ...u,
-    // merge saved values safely (if saved value exists, respect bought/unlocked & keep baseCost/per values from new curve)
     bought: (savedUpgrades[i] && typeof savedUpgrades[i].bought === 'number') ? savedUpgrades[i].bought : u.bought,
     unlocked: (savedUpgrades[i] && typeof savedUpgrades[i].unlocked === 'boolean') ? savedUpgrades[i].unlocked : u.unlocked
 }));
 
 let count = parseFloat(localStorage.getItem('count')) || 0;
-let perClick = parseFloat(localStorage.getItem('perClick')) || defaultUpgrades[0].perClick || 1; // safe fallback
+let perClick = parseFloat(localStorage.getItem('perClick')) || defaultUpgrades[0].perClick || 1;
 let total67sPerSecond = parseFloat(localStorage.getItem('total67sPerSecond')) || defaultUpgrades[0].perSecond || 0;
 
 const counterEl = document.getElementById("counter");
@@ -195,21 +184,13 @@ const cpsEl = document.getElementById("cps");
 const clicker = document.getElementById("clicker");
 const upgradesContainer = document.getElementById("upgradesContainer");
 
-// Utility to format big numbers with commas
-function fmt(n){
-    if (typeof n !== 'number' || !isFinite(n)) return String(n);
-    // For very large integers use toLocaleString
-    return Math.floor(n).toLocaleString();
-}
-// For amounts that may be fractional (perSecond), format nicely
+function fmt(n){ return Math.floor(n).toLocaleString(); }
 function fmtFraction(n){
     if (n === 0) return "0";
     if (n >= 1) return Math.floor(n).toLocaleString();
-    // show up to 2 decimals for small numbers
     return Number(n.toFixed(2)).toString();
 }
 
-// ===== RENDER UPGRADES =====
 function renderUpgrades(){
     upgradesContainer.innerHTML = '';
     upgrades.forEach((u,i)=>{
@@ -217,7 +198,7 @@ function renderUpgrades(){
             const btn = document.createElement("button");
             btn.className = "upgrade";
             btn.dataset.index = i;
-            const cost = Math.floor(u.baseCost * Math.pow(1.7, u.bought)); // keep buy-scaling (1.7) so repeated buys increase cost
+            const cost = Math.floor(u.baseCost * Math.pow(1.7, u.bought));
             const effect = u.type === "click" ? `+${u.perClick} per click` : `+${u.perSecond} per second`;
             btn.innerHTML = `${u.name} - Cost: ${fmt(cost)} <span class="upgrade-description">${effect}</span>`;
             btn.addEventListener("click", ()=> buyUpgrade(i, btn));
@@ -240,40 +221,28 @@ function updateUpgradeButtons(){
     });
 }
 
-// ===== BUY UPGRADE (instant update, no UI delay) =====
 function buyUpgrade(i){
     const u = upgrades[i];
     const cost = Math.floor(u.baseCost * Math.pow(1.7, u.bought));
     if(count >= cost){
-        // spend
         count -= cost;
-        // increment
         u.bought++;
-        // apply immediate effect
-        if(u.type === "click") {
-            perClick += u.perClick;
-        } else {
-            total67sPerSecond += u.perSecond;
-        }
-        // save and update UI
+        if(u.type === "click") perClick += u.perClick;
+        else total67sPerSecond += u.perSecond;
         updateDisplay();
-        // only update the buttons (faster than re-rendering everything)
         updateUpgradeButtons();
         scheduleSave();
     }
 }
 
-// ===== DISPLAY / CLICK / AUTO =====
 function updateDisplay(){
     counterEl.textContent = `67s: ${fmt(count)}`;
-    // show cps rounded but with commas
     cpsEl.textContent = `67s per second: ${fmtFraction(total67sPerSecond)}`;
 }
 
 function showFloating67(amount){
     const span = document.createElement('span');
     span.className = 'floating67';
-    // show integer or decimal nicely
     span.textContent = `+${amount >= 1 ? fmt(amount) : Number(amount.toFixed(2))}`;
     const rect = clicker.getBoundingClientRect();
     span.style.left = rect.left + rect.width/2 + 'px';
@@ -286,17 +255,16 @@ clicker.addEventListener('click', ()=>{
     count += perClick;
     showFloating67(perClick);
     updateDisplay();
+    updateUpgradeButtons(); // ✅ FIXED — refresh buttons instantly
     scheduleSave();
 });
 
-// Auto gain tick (10 per second as before)
 setInterval(()=>{
     count += total67sPerSecond/10;
     updateDisplay();
+    updateUpgradeButtons(); // ✅ FIXED — auto refreshes buttons too
 },100);
 
-// Unlock logic: if player has half of a base cost, unlock (keeps earlier behavior)
-// We'll check regularly but render only when needed
 let lastUnlockedCount = -1;
 setInterval(()=>{
     let changed = false;
@@ -309,9 +277,7 @@ setInterval(()=>{
     if(changed) renderUpgrades();
 },500);
 
-// ===== SAVE / LOAD (optimized) =====
 function scheduleSave(){
-    // Use requestIdleCallback if available, fallback to setTimeout
     if(window.requestIdleCallback){
         requestIdleCallback(()=> {
             localStorage.setItem('count', String(count));
@@ -329,10 +295,8 @@ function scheduleSave(){
     }
 }
 
-// Periodic auto-save just-in-case (every 10 seconds)
 setInterval(()=>{ scheduleSave(); }, 10000);
 
-// ===== STATS POPUP =====
 const viewStatsBtn = document.getElementById('viewStatsBtn');
 const statsOverlay = document.getElementById('statsOverlay');
 const statsContent = document.getElementById('statsContent');
@@ -355,13 +319,11 @@ function updateStats(){
     `;
 }
 
-// ===== MUSIC =====
 const music = document.getElementById('bg-music');
 music.volume = 0.3;
 document.addEventListener('click', ()=> { if(music.paused) music.play().catch(()=>{}); });
 music.play().catch(()=>{ console.log("Autoplay blocked.") });
 
-// ===== INIT =====
 renderUpgrades();
 updateDisplay();
 </script>
